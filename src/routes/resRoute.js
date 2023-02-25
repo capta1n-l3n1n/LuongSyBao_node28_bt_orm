@@ -1,6 +1,8 @@
-// const express = require("express");
-// const { getUser } = require("../controller/userController");
-// const resRoute = express.Router();
+const express = require("express");
+const { resLiked, resRate, addRate } = require("../controller/resController");
+const resRoute = express.Router();
 
-// userRoute.get("/getUser", getUser);
-// module.exports = resRoute;
+resRoute.get("/resLiked/:res_id", resLiked);
+resRoute.post("/addRate", addRate);
+resRoute.get("/resRate/:res_id", resRate);
+module.exports = resRoute;

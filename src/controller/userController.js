@@ -1,12 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const model = new PrismaClient();
-const getUser = async (req, res) => {
-  let data = await model.user.findMany();
-  // console.log(data);
-  res.send(data);
-};
+
 const likeRes = async (req, res) => {
-  console.log(model.like_res);
   try {
     let { user_id, res_id } = req.body;
     let date_like = new Date();
@@ -19,26 +14,81 @@ const likeRes = async (req, res) => {
 
     res.send("Liked");
   } catch (error) {
-    res.sendStatus(500);
-    // res.send(error.messsage);
+    res.send("User already liked");
   }
 };
+
 const unLikeRes = async (req, res) => {
+  // type like_resWhereUniqueInput {
+  //   user_id_res_id?: like_resResourceIdTagIdCompoundUniqueInput
+  // }
   try {
     let { user_id } = req.params;
-    // let { res_id } = req.body;
-    // let data = {
-    //   res_id,
-    // };
-    await model.like_res.delete({
-      where: { user_id: Number(user_id) },
+    let { res_id } = req.body;
+
+    await model.like_res.deleteMany({
+      where: { user_id: Number(user_id), res_id },
     });
 
+    res.send("Unliked");
+  } catch (error) {
+    res.send("User already unliked");
+  }
+};
+const userLiked = async (req, res) => {
+  let { user_id } = req.params;
+
+  try {
+    let data = await model.like_res.findMany({
+      where: {
+        user_id: Number(user_id),
+      },
+      include: {
+        restaurant: true,
+        user: true,
+      },
+    });
+    // console.log(data);
     res.send(data);
   } catch (error) {
     console.log(error);
-    // res.sendStatus(500);
-    res.send(error);
+    res.send(error.message);
   }
 };
-module.exports = { likeRes, getUser, unLikeRes };
+const userRate = async (req, res) => {
+  let { user_id } = req.params;
+
+  try {
+    let data = await model.rate_res.findMany({
+      where: {
+        user_id: Number(user_id),
+      },
+      include: {
+        user: true,
+        restaurant: true,
+      },
+    });
+    res.send(data);
+  } catch (error) {
+    res.send(error.message);
+  }
+};
+const addOrder = async (req, res) => {
+  try {
+    let { user_id, food_id, amount, code, arr_sub_id } = req.body;
+    let data = {
+      user_id,
+      food_id,
+      amount,
+      code,
+      arr_sub_id,
+    };
+    await model.order.create({ data });
+
+    res.send("Ordered");
+  } catch (error) {
+    // res.send("User already ordered");
+    res.send(error.message);
+  }
+};
+module.exports = { likeRes, userLiked, unLikeRes, userRate, addOrder };
